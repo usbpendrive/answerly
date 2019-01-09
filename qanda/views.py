@@ -1,8 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView
+from django.views.generic import CreateView, DetailView
 from django.http.response import HttpResponseBadRequest
 
-from qanda.forms import QuestionForm
+from qanda.forms import AnswerForm, AnswerAcceptanceForm, QuestionForm
 from qanda.models import Question
 
 
@@ -27,3 +27,53 @@ class AskQuestionView(LoginRequiredMixin, CreateView):
             ctx = self.get_context_data(preview=preview)
             return self.render_to_response(context=ctx)
         return HttpResponseBadRequest()
+
+
+class QuestionDetailView(DetailView):
+    model = Question
+
+    ACCEPT_FORM = AnswerAcceptanceForm(initial={'accepted': True})
+    REJECT_FORM = AnswerAcceptanceForm(initial={'accepted': False})
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update({
+            'answer_form': AnswerForm(initial={
+                'user': self.request.user.id,
+                'question': self.object.id,
+            })
+        })
+        if self.object.can_accept_answer(self.request.user):
+            ctx.update({
+                'accept_form': self.ACCEPT_FORM,
+                'reject_form': self.REJECT_FORM,
+            })
+
+        return ctx
+
+
+class CreateAnswerView(LoginRequiredMixin, CreateView):
+    form_class = AnswerForm
+    template_name = 'qanda/create_answer.html'
+
+    def get_initial(self):
+        return {
+            'question': self.get_question().id,
+            'user': self.request.user.id,
+        }
+
+    def get_success_url(self):
+        return self.object.question.get_absolute_url()
+
+    def form_valid(self, form):
+        action = self.request.POST.get('action')
+
+        if action == 'SAVE':
+            return super().form_valid(form)
+        elif action == 'PREVIEW':
+            ctx = self.get_context_data(preview=form.cleaned_data['answer'])
+            return self.render_to_response(context=ctx)
+        return HttpResponseBadRequest()
+
+    def get_question(self):
+        return Question.objects.get(pk=self.kwargs['pk'])
