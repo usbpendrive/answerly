@@ -139,3 +139,7 @@ MARKDOWNIFY_WHITELIST_TAGS = [
     'h5', 'h6', 'h7', 'ol', 'li', 'p', 'strong', 'ul',
 ]
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+LOGIN_URL = 'user:login'
+LOGIN_REDIRECT_URL = 'qanda:index'
+LOGOUT_REDIRECT_URL = 'qanda:index'

@@ -64,6 +64,9 @@ class CreateAnswerView(LoginRequiredMixin, CreateView):
             'user': self.request.user.id,
         }
 
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(question=self.get_question(), **kwargs)
+
     def get_success_url(self):
         return self.object.question.get_absolute_url()
 
