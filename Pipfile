@@ -11,6 +11,8 @@ psycopg2 = "==2.7.6.1"
 pillow = "==5.4.1"
 django-debug-toolbar = "==1.11"
 django-environ = "*"
+django-markdownify = "==0.8.0"
+django-crispy-forms = "==1.7.2"
 
 [requires]
 python_version = "3.7"
